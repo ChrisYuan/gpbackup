@@ -228,10 +228,18 @@ var _ = Describe("restore/validate tests", func() {
 			defer testhelper.ShouldPanicWithMessage("Could not find the following relation(s) in the backup set: schema1.table3")
 			restore.ValidateFilterRelationsInBackupSet(filterList)
 		})
+		It("table exists in most recent restore plan entry", func() {
+			restore.SetBackupConfig(&utils.BackupConfig{RestorePlan: []utils.RestorePlanEntry{{TableFQNs: []string{"schema1.table1_part_1"}}}})
+			filterList = []string{"schema1.table1_part_1"}
+			restore.ValidateFilterRelationsInBackupSet(filterList)
+		})
+		It("table exists in previous restore plan entry", func() {
+			restore.SetBackupConfig(&utils.BackupConfig{RestorePlan: []utils.RestorePlanEntry{{TableFQNs: []string{"schema1.random_table"}}, {TableFQNs: []string{"schema1.table1_part_1"}}}})
+			filterList = []string{"schema1.table1_part_1"}
+			restore.ValidateFilterRelationsInBackupSet(filterList)
+		})
 	})
 	Describe("ValidateDatabaseExistence", func() {
-		BeforeEach(func() {
-		})
 		It("fails if createdb passed when db exists", func() {
 			db_exists := sqlmock.NewRows([]string{"string"}).
 				AddRow("true")
